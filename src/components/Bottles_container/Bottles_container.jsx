@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Bottle from "../Bottle/Bottle";
 import './Bottles_container.css';
 import Cart from "../Cart/Cart";
+import { getStoredCart, removeItemFromCart, saveCartToLocalStorage } from "../../utilities/localStorage";
 
 const Bottles_container = () => {
     const [bottles, setBottles] = useState([]);
@@ -17,11 +18,39 @@ const Bottles_container = () => {
         fetchData();
     }, []);
 
+    // load cart from local
+    useEffect(() => {
+        if(bottles.length > 0){
+            const storedCart = getStoredCart();
+            console.log(storedCart, bottles)
+            const savedCart = [];
+            for(const id of storedCart){
+                console.log(id);
+                const bottle = bottles.find(bottle => bottle.id == id);
+                if(bottle){
+                    savedCart.push(bottle);
+                }
+            }
+            setAddCart(savedCart)
+        }
+    },[bottles])
+
+
     const bottleAddToCart = (cartBottle) => {
         const newCart = [...addCart, cartBottle];
         setAddCart(newCart);
+        saveCartToLocalStorage(cartBottle.id)
     }
 
+    const handleCartItemDelete = (cartInfo) => {
+        console.log(cartInfo.id);
+        const newItems = addCart.filter(removeCart => removeCart.id != cartInfo.id);
+        setAddCart(newItems)
+        removeItemFromCart(cartInfo.id);
+    }
+
+    
+ 
     // const addCartInfo = addCart.map(info => info);
     // console.log(addCartInfo)
 
@@ -34,7 +63,7 @@ const Bottles_container = () => {
                         <Bottle key={bottle.id} bottle={bottle}  bottleAddToCart={bottleAddToCart}></Bottle>
                     ))}
                 </div>
-                <Cart addCart={addCart}></Cart>
+                <Cart addCart={addCart} handleCartItemDelete={handleCartItemDelete}></Cart>
             </div>
         </div>
     );
